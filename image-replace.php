@@ -22,7 +22,6 @@ if ( !defined( 'ABSPATH' ) ) exit;
 define( 'DB_IMAGE_REPLACE_PATH', plugins_url( '/', __FILE__ ) );
 define( 'DB_IMAGE_REPLACE_IMAGE_DIR_PATH', dirname( realpath( __FILE__ ) ).'/imgs/futurama/' );
 define( 'DB_IMAGE_RELPACE_LOCAL_PATH', plugin_dir_path( __FILE__ ) );
-echo DB_IMAGE_RELPACE_LOCAL_PATH;
 
 if ( ! class_exists( 'DB_Image_Replace' ) ) {
 
