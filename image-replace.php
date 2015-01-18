@@ -57,30 +57,39 @@ if ( ! class_exists( 'DB_Image_Replace' ) ) {
 		}
 
 		public function image_src_filter( $html, $post_id, $post_thumbnail_id, $size, $attr ) {
+
+			// echo '<pre>';
+			// print_r($img_id_hash);
+			// echo '</pre>';
 			// dealing with different $size array on single.php
 			if ( is_array( $size ) && isset( $size[0] ) ) {
-				$org_w = $size[0];
-				$org_h = $size[1];
+				$target_w = $size[0];
+				$target_h = $size[1];
 			} else {
-				$org_w = $this->img_sizes[ $size ]['width'];
-				$org_h = $this->img_sizes[ $size ]['height'];
+				$target_w = $this->img_sizes[ $size ]['width'];
+				$target_h = $this->img_sizes[ $size ]['height'];
 			}
-
 			$count = count( $this->img_files );
 			$rand = rand( 0, $count - 1 );
+			$img_id_hash = hash( 'md5', basename( $this->img_files[ $rand ] ) );
+
+
 
 			$image = DB_IMAGE_REPLACE_PATH . 'imgs/futurama/' . basename( $this->img_files[ $rand ] ); // the image to crop
-			fopen( DB_IMAGE_RELPACE_LOCAL_PATH . 'imgs/temp/cropped_whatever.jpg', 'w' );
-			$dest_image = 'imgs/temp/cropped_whatever.jpg'; // make sure the directory is writeable
-			$img = imagecreatetruecolor( intval( $org_w ), intval( $org_h ) );
+			$dest_image = 'imgs/temp/' . $img_id_hash . '-' . $target_w . 'x' . $target_h . '.jpg'; // make sure the directory is writeable
+			$img = imagecreatetruecolor( intval( $target_w ), intval( $target_h ) );
 			$org_img = imagecreatefromjpeg( $image );
-			$ims = getimagesize( $image );
-			imagecopy( $img, $org_img, 0, 0, 20, 20, intval( $org_w ), intval( $org_h ) );
+			$original_size = getimagesize( $image );
+			$target_x_start = ( $original_size[0] / 2 ) - ( $target_w / 2 );
+			$target_y_start = ( $original_size[1] / 2 ) - ( $target_h / 2 );
+
+			fopen( DB_IMAGE_RELPACE_LOCAL_PATH . 'imgs/temp/cropped_whatever.jpg', 'w' );
+			imagecopy( $img, $org_img, 0, 0, $target_x_start, $target_y_start, intval( $target_w ), intval( $target_h ) );
 			imagejpeg( $img, DB_IMAGE_RELPACE_LOCAL_PATH . $dest_image, 90 );
 
 			$img_info = wp_get_attachment_image_src( $post_thumbnail_id, $size );
 
-			$html = '<img src="' . esc_url( DB_IMAGE_REPLACE_PATH . 'imgs/temp/' . basename( $dest_image ) ) . '" width="' . intval( $org_w ) . '" height="' . intval( $org_h ) . '" />';
+			$html = '<img src="' . esc_url( DB_IMAGE_REPLACE_PATH . 'imgs/temp/' . basename( $dest_image ) ) . '" width="' . intval( $target_w ) . '" height="' . intval( $target_h ) . '" />';
 			return $html;
 		}
 
