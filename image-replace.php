@@ -1,26 +1,18 @@
 <?php
-
-/**
- * Image Replace
- *
- * @package Image Replace
- * @subpackage Main
- */
-
 /**
  * Plugin Name: Image Replace
  * Plugin URI:
  * Description: Replacing your images
  * Author: Dan Beil
- * Author URI:
+ * Author URI: add_action_dan.me
  * Version: 0.1
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 define( 'DB_IMAGE_REPLACE_PATH', plugins_url( '/', __FILE__ ) );
-define( 'DB_IMAGE_REPLACE_IMAGE_DIR_PATH', dirname( realpath( __FILE__ ) ).'/imgs/futurama/' );
+define( 'DB_IMAGE_REPLACE_IMAGE_DIR_PATH', dirname( realpath( __FILE__ ) ).'/imgs/' );
 define( 'DB_IMAGE_RELPACE_LOCAL_PATH', plugin_dir_path( __FILE__ ) );
 
 include( 'inc/dash-widget.php' );
@@ -29,9 +21,14 @@ if ( ! class_exists( 'DB_Image_Replace' ) ) {
 
 	/**
 	 * Filter the image yo!
+	 * We are gunna filter the_post_thumbnail and randomly display other images
 	 *
 	 **/
 	class DB_Image_Replace {
+
+		public $db_ir_options = '';
+
+
 
 		public $img_sizes = array();
 		public $img_files = array();
@@ -41,23 +38,46 @@ if ( ! class_exists( 'DB_Image_Replace' ) ) {
 			add_action( 'init', array( $this, 'image_arrays' ) );
 			add_filter( 'post_thumbnail_html', array( $this, 'image_src_filter' ), 99, 5 );
 
+			$this->db_ir_options = get_option( 'db_ir_options' );
+
+
 		}
 
 		public function get_img_sizes() {
 			global $_wp_additional_image_sizes;
 			$this->img_sizes = $_wp_additional_image_sizes;
+			echo 'in function';
 		}
 
 		public function image_arrays() {
-			foreach ( glob( DB_IMAGE_REPLACE_IMAGE_DIR_PATH .'*') as $filename){
-				$this->img_files[] = basename( $filename );
+			$ir_options = $this->db_ir_options = get_option( 'db_ir_options' );
+			echo '<pre>';
+			print_r($ir_options);
+			echo '</pre>';
+			$sub_dirs = scandir( DB_IMAGE_RELPACE_LOCAL_PATH . '/imgs' );
+			foreach ($sub_dirs as $key => $value) {
+				$sub_dirs[ $value ] = $value;
+				unset( $sub_dirs[ $key ] );
+			}
+			echo '<pre>';
+			print_r($sub_dirs);
+			echo '</pre>';
+			$active_dirs = array_intersect_key( $ir_options, $sub_dirs );
+			echo '<pre>';
+			print_r($active_dirs);
+			echo '</pre>';
+
+			foreach ( glob( DB_IMAGE_REPLACE_IMAGE_DIR_PATH . '/' . $key .'/*' ) as $filename ){
+				$this->img_files[ $key ] = basename( $filename );
 			}
 			shuffle( $this->img_files );
-
-
 		}
 
 		public function image_src_filter( $html, $post_id, $post_thumbnail_id, $size, $attr ) {
+
+			// echo '<pre>';
+			// print_r($this->img_files);
+			// echo '</pre>';
 
 			// dealing with different $size array on single.php
 			if ( is_array( $size ) && isset( $size[0] ) ) {
@@ -72,6 +92,14 @@ if ( ! class_exists( 'DB_Image_Replace' ) ) {
 			$img_id_hash = hash( 'md5', basename( $this->img_files[ $rand ] ) );
 
 			if ( false === ( $html = get_transient( $img_id_hash . '-' . $target_w . 'x' . $target_h ) ) ) {
+				$this->db_ir_options = get_option( 'db_ir_options' );
+				$rand_dir = shuffle( $this->db_ir_options );
+				// echo 'rand_dir<pre>';
+				// print_r($rand_dir);
+				// echo '</pre>';
+				// echo '<pre>';
+				// print_r($rand_dir);
+				// echo '</pre>';
 				$image = DB_IMAGE_REPLACE_PATH . 'imgs/futurama/' . basename( $this->img_files[ $rand ] ); // the image to crop
 				$dest_image = 'imgs/temp/' . $img_id_hash . '-' . $target_w . 'x' . $target_h . '.jpg'; // make sure the directory is writeable
 				$img = imagecreatetruecolor( intval( $target_w ), intval( $target_h ) );
