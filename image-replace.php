@@ -23,6 +23,8 @@ define( 'DB_IMAGE_REPLACE_PATH', plugins_url( '/', __FILE__ ) );
 define( 'DB_IMAGE_REPLACE_IMAGE_DIR_PATH', dirname( realpath( __FILE__ ) ).'/imgs/futurama/' );
 define( 'DB_IMAGE_RELPACE_LOCAL_PATH', plugin_dir_path( __FILE__ ) );
 
+include( 'inc/dash-widget.php' );
+
 if ( ! class_exists( 'DB_Image_Replace' ) ) {
 
 	/**
@@ -83,7 +85,7 @@ if ( ! class_exists( 'DB_Image_Replace' ) ) {
 				imagejpeg( $img, DB_IMAGE_RELPACE_LOCAL_PATH . $dest_image, 90 );
 
 				$html = '<img src="' . esc_url( DB_IMAGE_REPLACE_PATH . 'imgs/temp/' . basename( $dest_image ) ) . '" width="' . intval( $target_w ) . '" height="' . intval( $target_h ) . '" />';
-				set_transient( $img_id_hash . '-' . $target_w . 'x' . $target_h, $html );
+				set_transient( $img_id_hash . '-' . $target_w . 'x' . $target_h, $html, 3 );
 				return $html;
 			} else {
 				return $html;
