@@ -46,38 +46,22 @@ if ( ! class_exists( 'DB_Image_Replace' ) ) {
 		public function get_img_sizes() {
 			global $_wp_additional_image_sizes;
 			$this->img_sizes = $_wp_additional_image_sizes;
-			echo 'in function';
 		}
 
 		public function image_arrays() {
-			$ir_options = $this->db_ir_options = get_option( 'db_ir_options' );
-			echo '<pre>';
-			print_r($ir_options);
-			echo '</pre>';
-			$sub_dirs = scandir( DB_IMAGE_RELPACE_LOCAL_PATH . '/imgs' );
-			foreach ($sub_dirs as $key => $value) {
-				$sub_dirs[ $value ] = $value;
-				unset( $sub_dirs[ $key ] );
+			$db_ir_options = $this->db_ir_options = get_option( 'db_ir_options' );
+			foreach ($db_ir_options as $key => $value) {
+				$this->img_files[ $key ] = array();
+				foreach ( glob( DB_IMAGE_REPLACE_IMAGE_DIR_PATH . '/' . $key .'/*' ) as $filename ){
+					$this->img_files[ $key ][] = basename( $filename );
+				}
+				shuffle( $this->img_files[ $key ] );
 			}
-			echo '<pre>';
-			print_r($sub_dirs);
-			echo '</pre>';
-			$active_dirs = array_intersect_key( $ir_options, $sub_dirs );
-			echo '<pre>';
-			print_r($active_dirs);
-			echo '</pre>';
-
-			foreach ( glob( DB_IMAGE_REPLACE_IMAGE_DIR_PATH . '/' . $key .'/*' ) as $filename ){
-				$this->img_files[ $key ] = basename( $filename );
-			}
-			shuffle( $this->img_files );
 		}
 
 		public function image_src_filter( $html, $post_id, $post_thumbnail_id, $size, $attr ) {
-
-			// echo '<pre>';
-			// print_r($this->img_files);
-			// echo '</pre>';
+			$db_ir_options = get_option( 'db_ir_options' );
+			$rand_dir = array_rand( $db_ir_options, 1 );
 
 			// dealing with different $size array on single.php
 			if ( is_array( $size ) && isset( $size[0] ) ) {
@@ -87,20 +71,14 @@ if ( ! class_exists( 'DB_Image_Replace' ) ) {
 				$target_w = $this->img_sizes[ $size ]['width'];
 				$target_h = $this->img_sizes[ $size ]['height'];
 			}
-			$count = count( $this->img_files );
+			$count = count( $this->img_files[ $rand_dir ] );
 			$rand = rand( 0, $count - 1 );
-			$img_id_hash = hash( 'md5', basename( $this->img_files[ $rand ] ) );
+			$img_id_hash = hash( 'md5', basename( $this->img_files[ $rand_dir ][ $rand ] ) );
 
 			if ( false === ( $html = get_transient( $img_id_hash . '-' . $target_w . 'x' . $target_h ) ) ) {
-				$this->db_ir_options = get_option( 'db_ir_options' );
-				$rand_dir = shuffle( $this->db_ir_options );
-				// echo 'rand_dir<pre>';
-				// print_r($rand_dir);
-				// echo '</pre>';
-				// echo '<pre>';
-				// print_r($rand_dir);
-				// echo '</pre>';
-				$image = DB_IMAGE_REPLACE_PATH . 'imgs/futurama/' . basename( $this->img_files[ $rand ] ); // the image to crop
+
+
+				$image = DB_IMAGE_REPLACE_PATH . 'imgs/' . $rand_dir . '/' . basename( $this->img_files[ $rand_dir ][ $rand ] ); // the image to crop
 				$dest_image = 'imgs/temp/' . $img_id_hash . '-' . $target_w . 'x' . $target_h . '.jpg'; // make sure the directory is writeable
 				$img = imagecreatetruecolor( intval( $target_w ), intval( $target_h ) );
 				$org_img = imagecreatefromjpeg( $image );
