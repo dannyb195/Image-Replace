@@ -6,6 +6,6 @@ Are you sick of looking at that pretentious unicorn in the WordPress Theme Unit 
 
 ## I still got a lot of work to do, like this stuff:
 - ~~img cropping and temp saving~~
-- Transient filter return
+- ~~Transient filter return~~
 - addition show / topics / movie images
 - Options page for ^ that stuff ( probably a dashboard widget )
