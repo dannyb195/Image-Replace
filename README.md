@@ -4,7 +4,7 @@ Are you sick of looking at that pretentious unicorn in the WordPress Theme Unit 
 
 While this started as a complete joke, I found it actually helpful when locally working on WordPress sites with large media libraries as I didn't want to download 4 billion images.  This plug greatly sped up local load times as you have actual images to load.
 
-### Note: The Royal We are only supporting JPEGs right now
+### Note: (The Royal) We are only supporting JPEGs right now
 
 ### Note: imgs/temp must be writable
 
