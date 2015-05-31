@@ -47,6 +47,9 @@ if ( ! class_exists( 'DB_Image_Replace_Dash_Widget' ) ) {
 
 		public function configure_dashboard_widget() {
 			$db_ir_options = get_option( 'db_ir_options' );
+			if ( empty( $db_ir_options ) ) {
+				$db_ir_options = array();
+			}
 			$array_for_saving = array(); // needed for saving
 			echo '<h2>' . esc_html__( 'Image Replace Options:' ) . '</h2>';
 

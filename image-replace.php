@@ -48,8 +48,16 @@ if ( ! class_exists( 'DB_Image_Replace' ) ) {
 			$this->img_sizes = $_wp_additional_image_sizes;
 		}
 
+		public static function my_admin_error_notice() {
+			echo '<div class="error"> <p>Please go to the Dashboard and enter options for Image Replace</p></div>';
+		}
+
 		public function image_arrays() {
 			$db_ir_options = $this->db_ir_options = get_option( 'db_ir_options' );
+			if ( empty( $db_ir_options ) ) {
+				add_action( 'admin_notices', array( $this, 'my_admin_error_notice' ) );
+				return;
+			}
 			foreach ($db_ir_options as $key => $value) {
 				$this->img_files[ $key ] = array();
 				foreach ( glob( DB_IMAGE_REPLACE_IMAGE_DIR_PATH . '/' . $key .'/*' ) as $filename ){
@@ -60,17 +68,45 @@ if ( ! class_exists( 'DB_Image_Replace' ) ) {
 		}
 
 		public function image_src_filter( $html, $post_id, $post_thumbnail_id, $size, $attr ) {
+
+			// Needed for getting custom sizes below
+			global $_wp_additional_image_sizes;
+
+			// Admin warning if options not set
 			$db_ir_options = get_option( 'db_ir_options' );
+			if ( empty(  $db_ir_options ) ) {
+				add_action( 'admin_notices', array( $this, 'my_admin_error_notice' ) );
+				return;
+			}
+
+			// randomizing images
 			$rand_dir = array_rand( $db_ir_options, 1 );
 
-			// dealing with different $size array on single.php
-			if ( is_array( $size ) && isset( $size[0] ) ) {
-				$target_w = $size[0];
-				$target_h = $size[1];
-			} else {
-				$target_w = $this->img_sizes[ $size ]['width'];
-				$target_h = $this->img_sizes[ $size ]['height'];
+			// Creating array
+			$size_array = array();
+
+			// Getting all registered sizes
+			$sizes = get_intermediate_image_sizes();
+
+			// Setting sizes by slug['width || height'] in our custom array
+			foreach ( $sizes as $_size ) {
+
+				if ( 'post-thumbnail' == $size ) {
+					$size = 'thumbnail';
+				}
+				if ( in_array( $size, array( 'thumbnail', 'medium', 'large' ) ) ) {
+					// Checking for the defaults
+					$size_array[ $_size ]['width'] = get_option( $size . '_size_w' );
+					$size_array[ $_size ]['height'] = get_option( $size . '_size_h' );
+				} else {
+					// Getting custom sizes
+					$size_array[ $_size ]['width'] = $_wp_additional_image_sizes[ $size ]['width'];
+					$size_array[ $_size ]['height'] = $_wp_additional_image_sizes[ $size ]['height'];
+				}
 			}
+			$target_w = $size_array[ $size ]['width'];
+			$target_h = $size_array[ $size ]['height'];
+
 			$count = count( $this->img_files[ $rand_dir ] );
 			$rand = rand( 0, $count - 1 );
 			$img_id_hash = hash( 'md5', basename( $this->img_files[ $rand_dir ][ $rand ] ) );
