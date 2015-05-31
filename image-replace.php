@@ -27,9 +27,6 @@ if ( ! class_exists( 'DB_Image_Replace' ) ) {
 	class DB_Image_Replace {
 
 		public $db_ir_options = '';
-
-
-
 		public $img_sizes = array();
 		public $img_files = array();
 
@@ -39,8 +36,6 @@ if ( ! class_exists( 'DB_Image_Replace' ) ) {
 			add_filter( 'post_thumbnail_html', array( $this, 'image_src_filter' ), 99, 5 );
 
 			$this->db_ir_options = get_option( 'db_ir_options' );
-
-
 		}
 
 		public function get_img_sizes() {
@@ -49,15 +44,17 @@ if ( ! class_exists( 'DB_Image_Replace' ) ) {
 		}
 
 		public static function my_admin_error_notice() {
-			echo '<div class="error"> <p>Please go to the Dashboard and enter options for Image Replace</p></div>';
+			echo '<div class="error"><p>'. esc_html__( 'Please go to the Dashboard and enter options for Image Replace', 'image-replace' ) . '</p></div>';
 		}
 
 		public function image_arrays() {
+			// Getting our options
 			$db_ir_options = $this->db_ir_options = get_option( 'db_ir_options' );
 			if ( empty( $db_ir_options ) ) {
 				add_action( 'admin_notices', array( $this, 'my_admin_error_notice' ) );
 				return;
 			}
+			// Getting images
 			foreach ($db_ir_options as $key => $value) {
 				$this->img_files[ $key ] = array();
 				foreach ( glob( DB_IMAGE_REPLACE_IMAGE_DIR_PATH . '/' . $key .'/*' ) as $filename ){
@@ -112,8 +109,6 @@ if ( ! class_exists( 'DB_Image_Replace' ) ) {
 			$img_id_hash = hash( 'md5', basename( $this->img_files[ $rand_dir ][ $rand ] ) );
 
 			if ( false === ( $html = get_transient( $img_id_hash . '-' . $target_w . 'x' . $target_h ) ) ) {
-
-
 				$image = DB_IMAGE_REPLACE_PATH . 'imgs/' . $rand_dir . '/' . basename( $this->img_files[ $rand_dir ][ $rand ] ); // the image to crop
 				$dest_image = 'imgs/temp/' . $img_id_hash . '-' . $target_w . 'x' . $target_h . '.jpg'; // make sure the directory is writeable
 				$img = imagecreatetruecolor( intval( $target_w ), intval( $target_h ) );
