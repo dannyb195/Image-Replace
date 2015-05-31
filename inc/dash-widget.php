@@ -15,6 +15,7 @@ if ( ! class_exists( 'DB_Image_Replace_Dash_Widget' ) ) {
 		public $image_dirs = array(
 			'futurama' => 'Futurama',
 			'star-trek' => 'Star Trek',
+			'my-little-pony' => 'My Little Pony',
 		);
 
 		public function __construct() {
